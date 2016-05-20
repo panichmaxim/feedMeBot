@@ -28,7 +28,7 @@ type Restaurant struct{
   ID         string    `json:"id"`
   LogoSquare     string `json:"logo_square"`
   CoverInner   string `json:"cover_inner"`
-  Title       string `json:"city_id"`
+  Title       string `json:"title"`
   CityID     string  `json:"city_id"`
   Logo       string  `json:"logo"`
   Cover       string `json:"cover"`
@@ -36,6 +36,10 @@ type Restaurant struct{
   Images[]     Images  `json:"images"`
   News       News `json:"news"`
   MenuFiles     MenuFiles `json:"menu_files"`
+  ContactsAddress string `json:"contacts_address"`
+  Telephone string `json:"contacts_phone_main"`
+  Work string `json:"work_time"`
+  DescriptionShort string `json:"description_short"`
 }
 
 type MenuFiles struct {
