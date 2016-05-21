@@ -44,81 +44,72 @@ func main() {
 		switch {
 		case update.Message != nil:
 			text := strings.ToLower(update.Message.Text)
-			// msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Oo")
-			if isSelectMenu(text) {
-				menu(text, update.Message.Chat.ID)
-			}
-			if isDate(text) { // Через 2 часа  || 12.03 15:00
-				date(text, update.Message.Chat.ID)
-			}
-			if isYesOrNo(text) {
-				responseYes(update.Message.Chat.ID)
-			}
-			if isNo(text) {
-				responseNo(update.Message.Chat.ID)
-			}
-			if isThx(text) {
-				s := "Пожалуйста, " + update.Message.From.FirstName + ". Мне нравится работать с Вами!"
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, s)
-				Bot.Send(msg)
-			}
-			if isOficiant(text) {
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "К Вам сейчас подойдут.")
-				Bot.Send(msg)
-			}
-			if isCardBank(text) {
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Ваш заказ успешно забронирован. Ваш столик 51. Ждем Вас в нашем ресторане :)")
-				Bot.Send(msg)
-			}
-			text = update.Message.Text
-			switch {
-			case text == "/start start" || text == "/start":
-				firstName := update.Message.From.FirstName
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Привет, %s!", firstName))
-				msg.ReplyMarkup = StartMenu()
-				Bot.Send(msg)
-                break
-			case text == PreOrderStartMenuItem:
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите город")
-				msg.ReplyMarkup = CitiesMenu()
-				Bot.Send(msg)
-                break
-			case containsInCities(cities.Response, text):
-                str, kb := RestarauntsPager(0)
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, str)
-				msg.ReplyMarkup = kb
-				Bot.Send(msg)
-                break
-				/* venue := tgbotapi.NewVenue(ChatID, "A Test Location", "123 Test Street", 55, 55)
-				   venue.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-				   tgbotapi.NewInlineKeyboardRow(
-				       tgbotapi.NewInlineKeyboardButtonData("<", "{ \"title\":\"menu\", \"page\":0}"),
-				       tgbotapi.NewInlineKeyboardButtonData("№ 0", "{ \"title\":\"menu\", \"page\":0}"),
-				       tgbotapi.NewInlineKeyboardButtonData(">", "{ \"title\":\"menu\", \"page\":1}")))
-
-				   //bot.Send(tgbotapi.NewLocation(ChatID, update.Message.Location.Latitude, update.Message.Location.Longitude))
-				   bot.Send(venue)*/
-
+            switch {
+                case isSelectMenu(text):
+                    menu(text, update.Message.Chat.ID)
+                    break
+                case isDate(text): // Через 2 часа  || 12.03 15:00
+                    date(text, update.Message.Chat.ID)
+                    break
+                case isYesOrNo(text):
+                    responseYes(update.Message.Chat.ID)
+                    break
+                case isNo(text):
+                    responseNo(update.Message.Chat.ID)
+                    break
+                case isThx(text):
+                    s := "Пожалуйста, " + update.Message.From.FirstName + ". Мне нравится работать с Вами!"
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, s)
+                    Bot.Send(msg)
+                    break
+                case isOficiant(text):
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, "К Вам сейчас подойдут.")
+                    Bot.Send(msg)
+                    break
+                case isCardBank(text):
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Ваш заказ успешно забронирован. Ваш столик 51. Ждем Вас в нашем ресторане :)")
+                    Bot.Send(msg)
+                    break
+                case text == "/start start" || text == "/start":
+                    firstName := update.Message.From.FirstName
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Привет, %s!", firstName))
+                    msg.ReplyMarkup = StartMenu()
+                    Bot.Send(msg)
+                    break
+                case text == strings.ToLower(PreOrderStartMenuItem):
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите город")
+                    msg.ReplyMarkup = CitiesMenu()
+                    Bot.Send(msg)
+                    break
+                case containsInCities(cities.Response, text):
+                    str, kb := RestarauntsPager(0)
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, str)
+                    msg.ReplyMarkup = kb
+                    Bot.Send(msg)
+                    break
 			}
 		case update.CallbackQuery != nil:
 			var callBack CallbackQueryPageData
 			json.Unmarshal([]byte(update.CallbackQuery.Data), &callBack)
 			switch {
-			case callBack.Title == "restaraunt":
-                str, kb := RestarauntsPager(callBack.Page)
-                msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
-                msg.ReplyMarkup = &kb
-	            Bot.Send(msg)
-			case callBack.Title == "menu":
-                str, kb := MenuPager(callBack.Page)
-				msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
-				msg.ReplyMarkup = &kb
-				Bot.Send(msg)
-			case callBack.Title == "menu_choose":
-                str, kb := MenuPager(0)
-				msg := tgbotapi.NewMessage(int64(update.CallbackQuery.From.ID), str)
-				msg.ReplyMarkup = &kb
-				Bot.Send(msg)
+                case callBack.Title == "restaraunt":
+                    str, kb := RestarauntsPager(callBack.Page)
+                    msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
+                    msg.ReplyMarkup = &kb
+                    Bot.Send(msg)
+                    break
+                case callBack.Title == "menu":
+                    str, kb := MenuPager(callBack.Page)
+                    msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
+                    msg.ReplyMarkup = &kb
+                    Bot.Send(msg)
+                    break
+                case callBack.Title == "menu_choose":
+                    str, kb := MenuPager(0)
+                    msg := tgbotapi.NewMessage(int64(update.CallbackQuery.From.ID), str)
+                    msg.ReplyMarkup = &kb
+                    Bot.Send(msg)
+                    break
 			}
 		}
 	}
@@ -203,16 +194,17 @@ func RestarauntsPager(page int) (string, tgbotapi.InlineKeyboardMarkup) {
 
 func containsInCities(cities []City, name string) bool {
 	for _, city := range cities {
-		if city.Title == name {
+		if strings.ToLower(city.Title) == strings.ToLower(name) {
 			return true
 		}
 	}
 	return false
 }
 
+// В теории это функция нужна если у нас много менюшек, на данный момент только 1 меню для всех ресторанов
 func containsInRestaurants(restaurants []Restaurant, name string) bool {
 	for _, restaurant := range restaurants {
-		if restaurant.Title == name {
+		if strings.ToLower(restaurant.Title) == strings.ToLower(name) {
 			return true
 		}
 	}
