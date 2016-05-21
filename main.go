@@ -92,19 +92,19 @@ func main() {
 			var callBack CallbackQueryPageData
 			json.Unmarshal([]byte(update.CallbackQuery.Data), &callBack)
 			switch {
-                case callBack.Title == "restaraunt":
+                case callBack.Title == RestarauntCallbackTitle:
                     str, kb := RestarauntsPager(callBack.Page)
                     msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
                     msg.ReplyMarkup = &kb
                     Bot.Send(msg)
                     break
-                case callBack.Title == "menu":
+                case callBack.Title == MenuCallbackTitle:
                     str, kb := MenuPager(callBack.Page)
                     msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
                     msg.ReplyMarkup = &kb
                     Bot.Send(msg)
                     break
-                case callBack.Title == "menu_choose":
+                case callBack.Title == MenuChooseCallbackTitle:
                     str, kb := MenuPager(0)
                     msg := tgbotapi.NewMessage(int64(update.CallbackQuery.From.ID), str)
                     msg.ReplyMarkup = &kb
@@ -156,9 +156,9 @@ func MenuPager(page int) (string, tgbotapi.InlineKeyboardMarkup) {
 	str += ImageMenu[strconv.FormatInt(int64(page), 10)]
 	kb := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\"menu\", \"page\":%d}", prevPage)),
-			tgbotapi.NewInlineKeyboardButtonData("№ "+strconv.Itoa(page), fmt.Sprintf("{ \"title\":\"menu\", \"page\":%d}", page)),
-			tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\"menu\", \"page\":%d}", nextPage))))
+			tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\"" + MenuCallbackTitle + "\", \"page\":%d}", prevPage)),
+			tgbotapi.NewInlineKeyboardButtonData("№ "+strconv.Itoa(page+1), fmt.Sprintf("{ \"title\":\"" + MenuCallbackTitle + "\", \"page\":%d}", page)),
+			tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\"" + MenuCallbackTitle + "\", \"page\":%d}", nextPage))))
     return str, kb
 }
 
@@ -186,9 +186,9 @@ func RestarauntsPager(page int) (string, tgbotapi.InlineKeyboardMarkup) {
 	str += URLImages + restaurants.Response[page].Cover
 	kb := tgbotapi.NewInlineKeyboardMarkup(
             tgbotapi.NewInlineKeyboardRow(
-            tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\"restaraunt\", \"page\":%d}", prevPage)),
-            tgbotapi.NewInlineKeyboardButtonData("Выбрать", fmt.Sprintf("{ \"title\":\"menu_choose\", \"page\":%d}", page)),
-            tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\"restaraunt\", \"page\":%d}", nextPage))))
+            tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\"" + RestarauntCallbackTitle + "\", \"page\":%d}", prevPage)),
+            tgbotapi.NewInlineKeyboardButtonData("Выбрать", fmt.Sprintf("{ \"title\":\"" + MenuChooseCallbackTitle + "\", \"page\":%d}", page)),
+            tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\"" + RestarauntCallbackTitle + "\", \"page\":%d}", nextPage))))
 	return str, kb
 }
 
@@ -262,9 +262,9 @@ func responseNo(id int64) {
 	msg := tgbotapi.NewMessage(id, str)
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("<", "{ \"title\":\"menu\", \"page\":0}"),
-			tgbotapi.NewInlineKeyboardButtonData("№ 0", "{ \"title\":\"menu\", \"page\":0}"),
-			tgbotapi.NewInlineKeyboardButtonData(">", "{ \"title\":\"menu\", \"page\":1}")))
+			tgbotapi.NewInlineKeyboardButtonData("<", "{ \"title\":\"" + MenuCallbackTitle + "\", \"page\":0}"),
+			tgbotapi.NewInlineKeyboardButtonData("№ 0", "{ \"title\":\"" + MenuCallbackTitle + "\", \"page\":0}"),
+			tgbotapi.NewInlineKeyboardButtonData(">", "{ \"title\":\"" + MenuCallbackTitle + "\", \"page\":1}")))
 	Bot.Send(msg)
 }
 func responseYes(id int64) {
@@ -310,13 +310,11 @@ func isDate(date string) bool {
 }
 
 func isSelectMenu(str string) bool {
-    // fmt.Println("Debug" + str)
-    // fmt.Println(spellcheck.Correct(str))
 	return strings.Contains(str, "заказ") && strings.Contains(str, " ")
 }
 
 func menu(data string, id int64) {
-	data = strings.Replace(data, "заказ", "", -1)
+	data = strings.Replace(data, "заказать", "", -1)
 	var result []string
 	if strings.Contains(data, ",") {
 		result = strings.Split(data, ",")
@@ -326,7 +324,7 @@ func menu(data string, id int64) {
 	responseMsg := "Ваш итоговый заказ составил:\n\n"
 	for i := range result {
 		num, _ := strconv.Atoi(result[i])
-		responseMsg += Menu[strconv.FormatInt(int64(num+1), 10)] + " " + Price[strconv.FormatInt(int64(num+1), 10)] + " рублей \n"
+		responseMsg += Menu[strconv.FormatInt(int64(num-1), 10)] + " " + Price[strconv.FormatInt(int64(num-1), 10)] + " рублей \n"
 	}
 	responseMsg += "\nКогда хотите нас посетить? \n (Пример:\"Через 2 часа\" или \" 30.04 15:00\")"
 	msg := tgbotapi.NewMessage(id, responseMsg)

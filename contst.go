@@ -68,3 +68,7 @@ var ImageMenu = map[string]string {
 
 // PreOrderStartMenuItem constant Предзаказ.
 const PreOrderStartMenuItem = "Предзаказ"
+
+const MenuCallbackTitle = "menu"
+const RestarauntCallbackTitle  = "restaraunt"
+const MenuChooseCallbackTitle  = "menu_choose"
