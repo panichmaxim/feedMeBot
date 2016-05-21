@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"regexp"
 	"strings"
@@ -11,12 +10,12 @@ type ToySpellcheck struct {
 	words map[string]int
 }
 
-var spellcheck *ToySpellcheck
+// var spellcheck *ToySpellcheck
 
-func init2() {
-	spellcheck = &ToySpellcheck{}
-	spellcheck.Train("./bigRus.txt")
-}
+// func init2() {
+// 	spellcheck = &ToySpellcheck{}
+// 	spellcheck.Train("./bigRus.txt")
+// }
 
 // Train takes a text file and splits it into words and places
 // the words into the ToySpellcheck struct words dictionary
@@ -130,8 +129,7 @@ func (s *ToySpellcheck) bestCandidate(words []string) (result string) {
 	return ""
 }
 
-func main() {
-	init2()
-	return spellcheck.Correct("сопрник")
-
-}
+// func main() {
+// 	init2()
+// 	return spellcheck.Correct("сопрник")
+// }

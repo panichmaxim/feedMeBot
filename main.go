@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/russian-time"
-	"github.com/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
+    "github.com/ivahaev/russian-time"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,9 +20,14 @@ var Bot *tgbotapi.BotAPI
 
 var restaurants = Restaurants{}
 
-func main() {
+var spellcheck *ToySpellcheck
 
-	Bot, _ = tgbotapi.NewBotAPI(boToken)
+func main() {
+    
+    spellcheck = &ToySpellcheck{}
+	spellcheck.Train("./bigRus.txt")
+
+	Bot, _ = tgbotapi.NewBotAPI(botToken)
 
 	Bot.Debug = true
 
@@ -94,24 +99,9 @@ func main() {
 						tgbotapi.NewInlineKeyboardButtonData(">", "{ \"title\":\"menu\", \"page\":1}")))
 				Bot.Send(msg)
 			case containsInCities(cities.Response, text):
-				// Отображаем рестораны с пагинацией
-				// for i, e := range restaurants.Response {
-				//     msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%d. %s",i, e.Title))
-				//     bot.Send(msg)
-				// }
-
-				str := restaurants.Response[0].Title + " \n"
-				str += restaurants.Response[0].DescriptionShort + " \n"
-				str += "Адрес: " + restaurants.Response[0].ContactsAddress + " \n"
-				str += "Телефон: " + restaurants.Response[0].Telephone + " \n"
-				str += "Часы работы: " + restaurants.Response[0].Work + " \n" + " \n"
-				str += URLImages + restaurants.Response[0].Cover
+                str, kb := RestarauntsPager(0)
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, str)
-				msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-					tgbotapi.NewInlineKeyboardRow(
-						tgbotapi.NewInlineKeyboardButtonData("<", "{ \"title\":\"restaraunt\", \"page\":0}"),
-						tgbotapi.NewInlineKeyboardButtonData("Выбрать", "{ \"title\":\"restaraunt\", \"page\":0}"),
-						tgbotapi.NewInlineKeyboardButtonData(">", "{ \"title\":\"restaraunt\", \"page\":1}")))
+				msg.ReplyMarkup = kb
 				Bot.Send(msg)
 				/* venue := tgbotapi.NewVenue(ChatID, "A Test Location", "123 Test Street", 55, 55)
 				   venue.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
@@ -134,34 +124,10 @@ func main() {
 			fmt.Println(callBack.Page)
 			switch {
 			case callBack.Title == "restaraunt":
-				prevPage := 0
-				nextPage := 0
-				if callBack.Page == 0 {
-					prevPage = callBack.Page
-					nextPage = callBack.Page + 1
-				}
-				if callBack.Page != 0 && callBack.Page != len(restaurants.Response) {
-					prevPage = callBack.Page - 1
-					nextPage = callBack.Page + 1
-				}
-				if callBack.Page == len(restaurants.Response) {
-					prevPage = callBack.Page - 1
-					nextPage = callBack.Page + 1
-				}
-				str := restaurants.Response[callBack.Page].Title + " \n"
-				str += restaurants.Response[callBack.Page].DescriptionShort + " \n"
-				str += "Адрес: " + restaurants.Response[callBack.Page].ContactsAddress + " \n"
-				str += "Телефон: " + restaurants.Response[callBack.Page].Telephone + " \n"
-				str += "Часы работы: " + restaurants.Response[callBack.Page].Work + " \n" + " \n"
-				str += URLImages + restaurants.Response[callBack.Page].Cover
-				msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
-				kb := tgbotapi.NewInlineKeyboardMarkup(
-					tgbotapi.NewInlineKeyboardRow(
-						tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\"restaraunt\", \"page\":%d}", prevPage)),
-						tgbotapi.NewInlineKeyboardButtonData("Выбрать", fmt.Sprintf("{ \"title\":\"menu_choose\", \"page\":%d}", callBack.Page)),
-						tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\"restaraunt\", \"page\":%d}", nextPage))))
-				msg.ReplyMarkup = &kb
-				Bot.Send(msg)
+                str, kb := RestarauntsPager(callBack.Page)
+                msg := tgbotapi.NewEditMessageText(int64(update.CallbackQuery.From.ID), update.CallbackQuery.Message.MessageID, str)
+                msg.ReplyMarkup = &kb
+	            Bot.Send(msg)
 			case callBack.Title == "menu":
 				prevPage := 0
 				nextPage := 0
@@ -206,7 +172,7 @@ func main() {
 	}
 }
 
-// StartMenu func return start menu of chatbot.
+// StartMenu func returns start menu of chatbot.
 func StartMenu() tgbotapi.ReplyKeyboardMarkup {
 	return tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
@@ -220,7 +186,7 @@ func StartMenu() tgbotapi.ReplyKeyboardMarkup {
 		})
 }
 
-// CitiesMenu func return cities menu of chatbot.
+// CitiesMenu func returns cities menu of chatbot.
 func CitiesMenu() tgbotapi.ReplyKeyboardMarkup {
 	return NewReplyHideKeyboard(
 		[]tgbotapi.KeyboardButton{
@@ -229,6 +195,41 @@ func CitiesMenu() tgbotapi.ReplyKeyboardMarkup {
 		[]tgbotapi.KeyboardButton{
 			tgbotapi.NewKeyboardButton("Санкт-Петербург"),
 		})
+}
+
+// MenuPager func returns menu with view pager.
+func MenuPager(page int) {
+    
+}
+
+// RestarauntsPager func returns restaraunts with view pager.
+func RestarauntsPager(page int) (string, tgbotapi.InlineKeyboardMarkup) {
+    prevPage := 0
+    nextPage := 0
+    if page == 0 {
+		prevPage = page
+		nextPage = page + 1
+	}
+	if page != 0 && page != len(restaurants.Response) {
+		prevPage = page - 1
+		nextPage = page + 1
+	}
+	if page == len(restaurants.Response) {
+		prevPage = page - 1
+		nextPage = page + 1
+	}
+	str := restaurants.Response[page].Title + " \n"
+	str += restaurants.Response[page].DescriptionShort + " \n"
+	str += "Адрес: " + restaurants.Response[page].ContactsAddress + " \n"
+	str += "Телефон: " + restaurants.Response[page].Telephone + " \n"
+	str += "Часы работы: " + restaurants.Response[page].Work + " \n" + " \n"
+	str += URLImages + restaurants.Response[page].Cover
+	kb := tgbotapi.NewInlineKeyboardMarkup(
+            tgbotapi.NewInlineKeyboardRow(
+            tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("{ \"title\":\"restaraunt\", \"page\":%d}", prevPage)),
+            tgbotapi.NewInlineKeyboardButtonData("Выбрать", fmt.Sprintf("{ \"title\":\"menu_choose\", \"page\":%d}", page)),
+            tgbotapi.NewInlineKeyboardButtonData(">", fmt.Sprintf("{ \"title\":\"restaraunt\", \"page\":%d}", nextPage))))
+	return str, kb
 }
 
 func containsInCities(cities []City, name string) bool {
@@ -276,7 +277,7 @@ func isOficiant(text string) bool {
 	return strings.Contains(text, "официан")
 }
 func isThx(text string) bool {
-	return strings.Contains(text, "=)")
+	return strings.Contains(text, "спасибо")
 }
 func isNo(text string) bool {
 	return strings.Contains(text, "нет") && len(text) < 8 // 2 bytes one symbol
@@ -348,6 +349,8 @@ func isDate(date string) bool {
 }
 
 func isSelectMenu(str string) bool {
+    // fmt.Println("Debug" + str)
+    // fmt.Println(spellcheck.Correct(str))
 	return strings.Contains(str, "заказ") && strings.Contains(str, " ")
 }
 

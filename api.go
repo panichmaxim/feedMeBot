@@ -1,6 +1,6 @@
 package main
 
-const boToken = "229523295:AAHylAyRyjMsvinj1Hq8JpUQ20yjZzelpbA"
+const botToken = "229523295:AAHylAyRyjMsvinj1Hq8JpUQ20yjZzelpbA"
 
 const URL  = "http://iginza.ru/api/ru/" 
 const URLCity = URL + "cities/get"
