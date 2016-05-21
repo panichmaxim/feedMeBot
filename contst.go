@@ -66,9 +66,5 @@ var ImageMenu = map[string]string {
 
 // Bot constants
 
-// WhereToEatStartMenuItem constant Где поесть.
-const WhereToEatStartMenuItem = "где поесть"
 // PreOrderStartMenuItem constant Предзаказ.
-const PreOrderStartMenuItem = "предзаказ"
-// RestaurantMenuStartMenuItem constant Меню.
-const RestaurantMenuStartMenuItem = "меню"
+const PreOrderStartMenuItem = "Предзаказ"

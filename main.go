@@ -44,7 +44,7 @@ func main() {
 		switch {
 		case update.Message != nil:
 			text := strings.ToLower(update.Message.Text)
-			msg2 := tgbotapi.NewMessage(update.Message.Chat.ID, "Oo")
+			// msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Oo")
 			if isSelectMenu(text) {
 				menu(text, update.Message.Chat.ID)
 			}
@@ -59,16 +59,16 @@ func main() {
 			}
 			if isThx(text) {
 				s := "Пожалуйста, " + update.Message.From.FirstName + ". Мне нравится работать с Вами!"
-				msg2 = tgbotapi.NewMessage(update.Message.Chat.ID, s)
-				Bot.Send(msg2)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, s)
+				Bot.Send(msg)
 			}
 			if isOficiant(text) {
-				msg2 = tgbotapi.NewMessage(update.Message.Chat.ID, "К Вам сейчас подойдут.")
-				Bot.Send(msg2)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "К Вам сейчас подойдут.")
+				Bot.Send(msg)
 			}
 			if isCardBank(text) {
-				msg2 = tgbotapi.NewMessage(update.Message.Chat.ID, "Ваш заказ успешно забронирован. Ваш столик 51. Ждем Вас в нашем ресторане :)")
-				Bot.Send(msg2)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Ваш заказ успешно забронирован. Ваш столик 51. Ждем Вас в нашем ресторане :)")
+				Bot.Send(msg)
 			}
 			text = update.Message.Text
 			switch {
@@ -77,25 +77,18 @@ func main() {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Привет, %s!", firstName))
 				msg.ReplyMarkup = StartMenu()
 				Bot.Send(msg)
-			case text == WhereToEatStartMenuItem:
-				// Выберите город
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите город")
-				msg.ReplyMarkup = CitiesMenu()
-				Bot.Send(msg)
+                break
 			case text == PreOrderStartMenuItem:
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите город")
 				msg.ReplyMarkup = CitiesMenu()
 				Bot.Send(msg)
-			case text == RestaurantMenuStartMenuItem:
-                str, kb := MenuPager(0)
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, str)
-				msg.ReplyMarkup = kb
-				Bot.Send(msg)
+                break
 			case containsInCities(cities.Response, text):
                 str, kb := RestarauntsPager(0)
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, str)
 				msg.ReplyMarkup = kb
 				Bot.Send(msg)
+                break
 				/* venue := tgbotapi.NewVenue(ChatID, "A Test Location", "123 Test Street", 55, 55)
 				   venue.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				   tgbotapi.NewInlineKeyboardRow(
@@ -105,8 +98,6 @@ func main() {
 
 				   //bot.Send(tgbotapi.NewLocation(ChatID, update.Message.Location.Latitude, update.Message.Location.Longitude))
 				   bot.Send(venue)*/
-			case containsInRestaurants(restaurants.Response, text):
-				// Переделать на выбор меню
 
 			}
 		case update.CallbackQuery != nil:
@@ -137,14 +128,8 @@ func main() {
 func StartMenu() tgbotapi.ReplyKeyboardMarkup {
 	return tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
-			tgbotapi.NewKeyboardButton(WhereToEatStartMenuItem),
-		},
-		[]tgbotapi.KeyboardButton{
 			tgbotapi.NewKeyboardButton(PreOrderStartMenuItem),
-		},
-		[]tgbotapi.KeyboardButton{
-			tgbotapi.NewKeyboardButton(RestaurantMenuStartMenuItem),
-		})
+		},)
 }
 
 // CitiesMenu func returns cities menu of chatbot.
@@ -258,10 +243,10 @@ func NewReplyHideKeyboard(rows ...[]tgbotapi.KeyboardButton) tgbotapi.ReplyKeybo
 // Обработка текстовых команд
 
 func isOficiant(text string) bool {
-	return strings.Contains(text, "официан")
+	return strings.Contains(spellcheck.Correct(text), "официант")
 }
 func isThx(text string) bool {
-	return strings.Contains(text, "спасибо")
+	return strings.Contains(spellcheck.Correct(text), "спасибо")
 }
 func isNo(text string) bool {
 	return strings.Contains(text, "нет") && len(text) < 8 // 2 bytes one symbol
